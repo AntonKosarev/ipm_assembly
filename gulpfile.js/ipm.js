@@ -42,21 +42,20 @@ const processors = [
         ],
     }),
     autoprefixer(),
-];
-//pipe(postcss(processors))
-
-const ROOT = {
+]; //pipe(postcss(processors))
+const root = {
     src: {
         rs: 'C:/COREL/IPM',
         wz: 'C:/COREL/IPM',
         ss: 'C:/COREL/IPM'
     },
     build: {
-        rs: 'C:/COREL/bitbucket/reviversoft.com',
-        wz: 'C:/COREL/bitbucket/reviversoft.com',
-        ss: 'C:/COREL/bitbucket/simplestar'
+        rs: 'C:/COREL/IPM/build/reviversoft.com',
+        wz: 'C:/COREL/IPM/build/reviversoft.com',
+        ss: 'C:/COREL/IPM/build/simplestar'
     }
 };
+
 const ipms = {
     rs: [
         {prod: '', view: 'drtripm-reg-remexp6'}
@@ -72,98 +71,189 @@ const ipms = {
 const paths = {
     rs: {
         src: {
-            phtml: ROOT.src.rs + '/rs/*.phtml',
-            css: ROOT.src.rs + '/*.css',
-            img: ROOT.src.rs + '/rs/',
+            phtml: root.src.rs + '/rs/*.phtml',
+            css: root.src.rs + '/*.css',
+            img: root.src.rs + '/rs/',
         },
         build: {
-            phtml: ROOT.build.rs + '/application/views/scripts/start-message',
-            css: ROOT.build.rs + '/httpdocs/start-message/css/',
-            img: ROOT.build.rs + '/httpdocs/start-message/images/',
+            phtml: root.build.rs + '/application/views/scripts/start-message',
+            css: root.build.rs + '/httpdocs/start-message/css/',
+            img: root.build.rs + '/httpdocs/start-message/images/',
         },
         watch: {
-            phtml: [ROOT.src.rs + '/rs/*.phtml', ROOT.src.rs + '/*.phtml'],
+            phtml: [root.src.rs + '/rs/*.phtml', root.src.rs + '/*.phtml'],
+            css: [root.src.rs + '/*.css'],
+            img: [root.src.rs + '/ss/'],
         }
     },
     ss: {
         src: {
-            phtml: ROOT.src.ss + '/ss/*.phtml',
-            css: ROOT.src.ss + '/*.css',
-            img: ROOT.src.ss + '/ss/',
+            phtml: root.src.ss + '/ss/*.phtml',
+            css: root.src.ss + '/*.css',
+            img: root.src.ss + '/ss/',
         },
         build: {
-            phtml: ROOT.build.ss + '/application/views/scripts/start-message',
-            css: ROOT.build.ss + '/httpdocs/start-message/css/',
-            img: ROOT.build.ss + '/httpdocs/start-message/images/',
+            phtml: root.build.ss + '/application/views/scripts/start-message',
+            css: root.build.ss + '/httpdocs/start-message/css/',
+            img: root.build.ss + '/httpdocs/start-message/images/',
         },
         watch: {
-            phtml: [ROOT.src.ss + '/ss/*.phtml', ROOT.src.ss + '/*.phtml'],
-            css: [ROOT.src.ss + '/*.css'],
-            img: [ROOT.src.ss + '/ss/'],
+            phtml: [root.src.ss + '/ss/*.phtml', root.src.ss + '/*.phtml'],
+            css: [root.src.ss + '/*.css'],
+            img: [root.src.ss + '/ss/'],
+        }
+    },
+    wz: {
+        src: {
+            phtml: root.src.wz + '/wz/',
+            css: root.src.wz + '/*.css',
+            img: root.src.wz + '/wz/',
+        },
+        build: {
+            phtml: root.build.wz + '/application/ipm/views/scripts/',
+            css: root.build.wz + '/httpdocs/ipm/',
+            img: root.build.wz + '/httpdocs/ipm/',
+        },
+        watch: {
+            phtml: [root.src.wz + '/wz/**/*.phtml', root.src.wz + '/*.phtml'],
+            css: [root.src.wz + '/*.css'],
+            img: [root.src.wz + '/wz/**/img/*'],
         }
     },
 };
 
-let assembly_ipm = {
-    views: ipms.ss,
-    path: paths.ss,
-    build: {
-        phtml: function (cd, path = assembly_ipm.path) {
-            src(path.src.phtml)
-                .pipe(fileinclude({
-                    prefix: '@@',
-                    basepath: '@file'
-                }))
-                .pipe(dest(path.build.phtml));
+function Assembly(views, path) {
+    let assembly = {
+        vars: function (cd) {
+            console.log('views: ', views);
+            console.log('path: ', path);
             cd();
         },
-        css: function (cd, path = assembly_ipm.path, views = assembly_ipm.views) {
-            for (let i = 0; i < views.length; i++) {
-                src(path.src.css)
-                    .pipe(postcss(processors))
-                    .pipe(dest(path.build.css + views[i].view));
-            }
-            cd();
-        },
-        img: function (cd, path = assembly_ipm.path, views = assembly_ipm.views) {
-            for (let i = 0; i < views.length; i++) {
-                src(path.src.img + views[i].view + '/*.*').pipe(dest(path.build.img + views[i].view));
-            }
-            cd();
-        }
-    },
-    watch: {
-        phtml: function (cd, path = assembly_ipm.path) {
-            gulp.watch(path.watch.phtml, series(assembly_ipm.build.phtml));
-            cd();
-        },
-        css: function (cd, path = assembly_ipm.path) {
-            gulp.watch(path.watch.css, series(assembly_ipm.build.css));
-            cd();
-        },
-        img: function (cd, path = assembly_ipm.path, views = assembly_ipm.views) {
-            for (let i = 0; i < views.length; i++) {
-                gulp.watch(path.watch.img + views[i].view + '/*.*', function (done) {
-                    src(path.build.img + views[i].view + '/*.*', {read: false}).pipe(clean());
+        build: {
+            phtml: function (cd) {
+                src(path.src.phtml)
+                    .pipe(fileinclude({
+                        prefix: '@@',
+                        basepath: '@file'
+                    }))
+                    .pipe(dest(path.build.phtml));
+                cd();
+            },
+            css: function (cd) {
+                for (let i = 0; i < views.length; i++) {
+                    src(path.src.css)
+                        .pipe(postcss(processors))
+                        .pipe(dest(path.build.css + views[i].view));
+                }
+                cd();
+            },
+            img: function (cd) {
+                for (let i = 0; i < views.length; i++) {
                     src(path.src.img + views[i].view + '/*.*').pipe(dest(path.build.img + views[i].view));
-                    done();
-                });
+                }
+                cd();
             }
-            cd();
         },
-    }
+        watch: {
+            phtml: function (cd) {
+                gulp.watch(path.watch.phtml, series(assembly.build.phtml));
+                cd();
+            },
+            css: function (cd) {
+                gulp.watch(path.watch.css, series(assembly.build.css));
+                cd();
+            },
+            img: function (cd) {
+                for (let i = 0; i < views.length; i++) {
+                    gulp.watch(path.watch.img + views[i].view + '/*.*', function (done) {
+                        src(path.build.img + views[i].view + '/*.*', {read: false}).pipe(clean());
+                        src(path.src.img + views[i].view + '/*.*').pipe(dest(path.build.img + views[i].view));
+                        done();
+                    });
+                }
+                cd();
+            },
+        }
+    };
+    return assembly;
 }
 
-gulp.task('assembly_ipm', series(
-    assembly_ipm.build.phtml,
-    assembly_ipm.build.css,
-    assembly_ipm.build.img,
-    parallel(
-        assembly_ipm.watch.phtml,
-        assembly_ipm.watch.css,
-        assembly_ipm.watch.img
-    )
-));
+let assembly_ss = Assembly(ipms.ss, paths.ss);
+gulp.task('build_ss', series(assembly_ss.build.phtml, assembly_ss.build.css, assembly_ss.build.img));
+gulp.task('watch_ss', parallel(assembly_ss.watch.phtml, assembly_ss.watch.css, assembly_ss.watch.img));
+gulp.task('assembly_ss', series('build_ss', 'watch_ss'));
+
+let assembly_rs = Assembly(ipms.rs, paths.rs);
+gulp.task('build_rs', series(assembly_rs.build.phtml, assembly_rs.build.css, assembly_rs.build.img));
+gulp.task('watch_rs', parallel(assembly_rs.watch.phtml, assembly_rs.watch.css, assembly_rs.watch.img));
+gulp.task('assembly_rs', series('build_rs', 'watch_rs'));
+
+function AssemblyWZ(views, path) {
+    let assembly = {
+        vars: function (cd) {
+            console.log('views: ', views);
+            console.log('path: ', path);
+            cd();
+        },
+        build: {
+            phtml: function (cd) {
+                for (let i = 0; i < views.length; i++) {
+                    src(path.src.phtml + views[i].prod + '/*.phtml')
+                        .pipe(fileinclude({
+                            prefix: '@@',
+                            basepath: '@file'
+                        }))
+                        .pipe(dest(path.build.phtml + views[i].prod));
+                }
+                cd();
+            },
+            css: function (cd) {
+                for (let i = 0; i < views.length; i++) {
+                    src(path.src.css)
+                        .pipe(postcss(processors))
+                        .pipe(dest(path.build.css + views[i].prod + '/css/' + views[i].view));
+                }
+                cd();
+            },
+            img: function (cd) {
+                for (let i = 0; i < views.length; i++) {
+                    src(path.src.img + views[i].prod + '/img/*.*')
+                        .pipe(dest(path.build.img + views[i].prod + '/images/' + views[i].view));
+                }
+                cd();
+            }
+        },
+        watch: {
+            phtml: function (cd) {
+                gulp.watch(path.watch.phtml, series(assembly.build.phtml));
+                cd();
+            },
+            css: function (cd) {
+                gulp.watch(path.watch.css, series(assembly.build.css));
+                cd();
+            },
+            img: function (cd) {
+                for (let i = 0; i < views.length; i++) {
+                    gulp.watch(path.watch.img + views[i].view + '/*.*', function (done) {
+                        src(path.build.img + views[i].view + '/*.*', {read: false}).pipe(clean());
+                        src(path.src.img + views[i].view + '/*.*').pipe(dest(path.build.img + views[i].view));
+                        done();
+                    });
+                }
+                cd();
+            },
+        }
+    };
+    return assembly;
+}
+
+let assembly_wz = AssemblyWZ(ipms.wz, paths.wz);
+gulp.task('build_wz', series(assembly_wz.build.phtml, assembly_wz.build.css, assembly_wz.build.img));
+gulp.task('watch_wz', parallel(assembly_wz.watch.phtml, assembly_wz.watch.css, assembly_wz.watch.img));
+gulp.task('assembly_wz', series('build_wz', 'watch_wz'));
 
 
-// End simplestar.com GULP NEW --------------------------------------------------------------------------------------
+gulp.task('assembly', parallel('assembly_ss', 'assembly_rs'));
+
+//==== Start ======== simplestar.com assembly =======
+//==== End ========== simplestar.com assembly =======

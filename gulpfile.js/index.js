@@ -4,8 +4,8 @@ const HubRegistry = require('gulp-hub');
 
 /* load some files into the registry */
 const ipm = new HubRegistry(['ipm.js']);
-// const hub = new HubRegistry(['gulp-tasks/**/*.js']);
+gulp.registry(ipm);
 
 /* tell gulp to use the tasks just loaded */
-gulp.registry(ipm);
-gulp.registry(hub);
+// const hub = new HubRegistry(['gulp-tasks/**/*.js']);
+// gulp.registry(hub);

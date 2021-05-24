@@ -43,16 +43,17 @@ const processors = [
     }),
     autoprefixer(),
 ]; //pipe(postcss(processors))
+
 const root = {
     src: {
-        rs: 'C:/COREL/IPM',
-        wz: 'C:/COREL/IPM',
-        ss: 'C:/COREL/IPM'
+        rs: 'IPM',
+        wz: 'IPM',
+        ss: 'IPM'
     },
     build: {
-        rs: 'C:/COREL/IPM/build/reviversoft.com',
-        wz: 'C:/COREL/IPM/build/reviversoft.com',
-        ss: 'C:/COREL/IPM/build/simplestar'
+        rs: 'IPM/build/rs',
+        wz: 'IPM/build/wz',
+        ss: 'IPM/build/ss'
     }
 };
 
@@ -61,7 +62,7 @@ const ipms = {
         {prod: '', view: 'drtripm-reg-remexp6'}
     ],
     wz: [
-        {prod: 'driver-updater', view: 'tripm-reg-remexp6'}
+        {prod: 'driver-updater/', view: 'tripm-reg-remexp6'}
     ],
     ss: [
         {prod: '', view: 'sdutripm-reg-rem6-v3'},
@@ -71,7 +72,7 @@ const ipms = {
 const paths = {
     rs: {
         src: {
-            phtml: root.src.rs + '/rs/*.phtml',
+            phtml: root.src.rs + '/rs/',
             css: root.src.rs + '/*.css',
             img: root.src.rs + '/rs/',
         },
@@ -88,7 +89,7 @@ const paths = {
     },
     ss: {
         src: {
-            phtml: root.src.ss + '/ss/*.phtml',
+            phtml: root.src.ss + '/ss/',
             css: root.src.ss + '/*.css',
             img: root.src.ss + '/ss/',
         },
@@ -131,25 +132,41 @@ function Assembly(views, path) {
         },
         build: {
             phtml: function (cd) {
-                src(path.src.phtml)
-                    .pipe(fileinclude({
-                        prefix: '@@',
-                        basepath: '@file'
-                    }))
-                    .pipe(dest(path.build.phtml));
+                for (let i = 0; i < views.length; i++) {
+                    src(path.src.phtml + views[i].prod + '*.phtml')
+                        .pipe(fileinclude({
+                            prefix: '@@',
+                            basepath: '@file'
+                        }))
+                        .pipe(dest(path.build.phtml + views[i].prod));
+                }
                 cd();
             },
             css: function (cd) {
                 for (let i = 0; i < views.length; i++) {
-                    src(path.src.css)
-                        .pipe(postcss(processors))
-                        .pipe(dest(path.build.css + views[i].view));
+                    console.log('src: ', path.src.phtml + views[i].prod + '*.phtml');
+                    console.log('build: ', path.build.phtml + views[i].prod);
+                    if (views[i].prod === '') { // only for rs and ss
+                        src(path.src.css)
+                            .pipe(postcss(processors))
+                            .pipe(dest(path.build.css + views[i].view));
+                    } else { // only for wz
+                        src(path.src.css)
+                            .pipe(postcss(processors))
+                            .pipe(dest(path.build.css + views[i].prod + 'css/' + views[i].view));
+                    }
                 }
                 cd();
             },
             img: function (cd) {
                 for (let i = 0; i < views.length; i++) {
-                    src(path.src.img + views[i].view + '/*.*').pipe(dest(path.build.img + views[i].view));
+                    if (views[i].prod === '') { // only for rs and ss
+                        src(path.src.img + views[i].view + '/*.*')
+                            .pipe(dest(path.build.img + views[i].view));
+                    } else { // only for wz
+                        src(path.src.img + views[i].prod + '/img/*.*')
+                            .pipe(dest(path.build.img + views[i].prod + '/images/' + views[i].view));
+                    }
                 }
                 cd();
             }
@@ -188,72 +205,11 @@ gulp.task('build_rs', series(assembly_rs.build.phtml, assembly_rs.build.css, ass
 gulp.task('watch_rs', parallel(assembly_rs.watch.phtml, assembly_rs.watch.css, assembly_rs.watch.img));
 gulp.task('assembly_rs', series('build_rs', 'watch_rs'));
 
-function AssemblyWZ(views, path) {
-    let assembly = {
-        vars: function (cd) {
-            console.log('views: ', views);
-            console.log('path: ', path);
-            cd();
-        },
-        build: {
-            phtml: function (cd) {
-                for (let i = 0; i < views.length; i++) {
-                    src(path.src.phtml + views[i].prod + '/*.phtml')
-                        .pipe(fileinclude({
-                            prefix: '@@',
-                            basepath: '@file'
-                        }))
-                        .pipe(dest(path.build.phtml + views[i].prod));
-                }
-                cd();
-            },
-            css: function (cd) {
-                for (let i = 0; i < views.length; i++) {
-                    src(path.src.css)
-                        .pipe(postcss(processors))
-                        .pipe(dest(path.build.css + views[i].prod + '/css/' + views[i].view));
-                }
-                cd();
-            },
-            img: function (cd) {
-                for (let i = 0; i < views.length; i++) {
-                    src(path.src.img + views[i].prod + '/img/*.*')
-                        .pipe(dest(path.build.img + views[i].prod + '/images/' + views[i].view));
-                }
-                cd();
-            }
-        },
-        watch: {
-            phtml: function (cd) {
-                gulp.watch(path.watch.phtml, series(assembly.build.phtml));
-                cd();
-            },
-            css: function (cd) {
-                gulp.watch(path.watch.css, series(assembly.build.css));
-                cd();
-            },
-            img: function (cd) {
-                for (let i = 0; i < views.length; i++) {
-                    gulp.watch(path.watch.img + views[i].view + '/*.*', function (done) {
-                        src(path.build.img + views[i].view + '/*.*', {read: false}).pipe(clean());
-                        src(path.src.img + views[i].view + '/*.*').pipe(dest(path.build.img + views[i].view));
-                        done();
-                    });
-                }
-                cd();
-            },
-        }
-    };
-    return assembly;
-}
-
-let assembly_wz = AssemblyWZ(ipms.wz, paths.wz);
+let assembly_wz = Assembly(ipms.wz, paths.wz);
 gulp.task('build_wz', series(assembly_wz.build.phtml, assembly_wz.build.css, assembly_wz.build.img));
 gulp.task('watch_wz', parallel(assembly_wz.watch.phtml, assembly_wz.watch.css, assembly_wz.watch.img));
 gulp.task('assembly_wz', series('build_wz', 'watch_wz'));
 
-
-gulp.task('assembly', parallel('assembly_ss', 'assembly_rs'));
-
-//==== Start ======== simplestar.com assembly =======
-//==== End ========== simplestar.com assembly =======
+gulp.task('ipm_assembly_build', parallel('build_ss', 'build_rs', 'build_wz'));
+gulp.task('ipm_assembly_watch', parallel('watch_ss', 'watch_rs', 'watch_wz'));
+gulp.task('ipm_assembly', series('ipm_assembly_build', 'ipm_assembly_watch'));

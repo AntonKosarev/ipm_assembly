@@ -24,45 +24,49 @@ gulp.task('set_env_dev',  parallel(setNodeEnvDev));
 gulp.task('set_env_prod',  parallel(setNodeEnvProd));
 //=============END environment ===============
 
-if (process.env.NODE_ENV === 'production') {
-    const processors = [
-        pxtoremorem({
-            selectorBlackList: [/^html$/],
-            replace: true,
-            rootValue: 16,
-            propList: [
-                'border-radius',
-                'box-shadow',
-                'font',
-                'font-size',
-                'line-height',
-                'letter-spacing',
-                'margin',
-                'margin-top',
-                'margin-right',
-                'margin-bottom',
-                'margin-left',
-                'padding',
-                'padding-top',
-                'padding-right',
-                'padding-bottom',
-                'padding-left',
-                'height',
-                'width',
-                'min-height',
-                'min-width',
-                'top',
-                'right',
-                'bottom',
-                'left',
-            ],
-        }),
-        autoprefixer(),
-    ]; //pipe(postcss(processors))
-} else {
-    const processors = [];
+function getProcessors() {
+    let processors = [];
+    if (process.env.NODE_ENV === 'production') {
+        processors = [
+            pxtoremorem({
+                selectorBlackList: [/^html$/],
+                replace: true,
+                rootValue: 16,
+                propList: [
+                    'border-radius',
+                    'box-shadow',
+                    'font',
+                    'font-size',
+                    'line-height',
+                    'letter-spacing',
+                    'margin',
+                    'margin-top',
+                    'margin-right',
+                    'margin-bottom',
+                    'margin-left',
+                    'padding',
+                    'padding-top',
+                    'padding-right',
+                    'padding-bottom',
+                    'padding-left',
+                    'height',
+                    'width',
+                    'min-height',
+                    'min-width',
+                    'top',
+                    'right',
+                    'bottom',
+                    'left',
+                ],
+            }),
+            autoprefixer(),
+        ]; //pipe(postcss(processors))
+    } else {
+        processors = [];
+    }
+    return processors;
 }
-
+const processors =  getProcessors();
 const root = {
     src: {
         rs: 'IPM',
@@ -144,11 +148,6 @@ const paths = {
 
 function Assembly(views, path) {
     let assembly = {
-        vars: function (cd) {
-            console.log('views: ', views);
-            console.log('path: ', path);
-            cd();
-        },
         build: {
             phtml: function (cd) {
                 for (let i = 0; i < views.length; i++) {
@@ -163,8 +162,6 @@ function Assembly(views, path) {
             },
             css: function (cd) {
                 for (let i = 0; i < views.length; i++) {
-                    console.log('src: ', path.src.phtml + views[i].prod + '*.phtml');
-                    console.log('build: ', path.build.phtml + views[i].prod);
                     if (views[i].prod === '') { // only for rs and ss
                         src(path.src.css)
                             .pipe(postcss(processors))

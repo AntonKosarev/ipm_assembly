@@ -21,6 +21,7 @@ npm install
 
 1) Add your root path and destination build directories in gulpfile/npm.js
 2) Exemple of source file structure:
+
 ![Screeshort](src_structure.png)
 
 3)	Phtml tamplates:

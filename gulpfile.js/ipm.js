@@ -24,7 +24,7 @@ gulp.task('set_env_dev',  parallel(setNodeEnvDev));
 gulp.task('set_env_prod',  parallel(setNodeEnvProd));
 //=============END environment ===============
 
-if (process.env.NODE_ENV = 'production') {
+if (process.env.NODE_ENV === 'production') {
     const processors = [
         pxtoremorem({
             selectorBlackList: [/^html$/],

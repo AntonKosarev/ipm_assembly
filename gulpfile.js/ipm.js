@@ -9,40 +9,59 @@ const pxtoremorem = require('postcss-pxtoremorem');
 const fileinclude = require('gulp-file-include');
 const clean = require('gulp-clean');
 
-const processors = [
-    pxtoremorem({
-        selectorBlackList: [/^html$/],
-        replace: true,
-        rootValue: 16,
-        propList: [
-            'border-radius',
-            'box-shadow',
-            'font',
-            'font-size',
-            'line-height',
-            'letter-spacing',
-            'margin',
-            'margin-top',
-            'margin-right',
-            'margin-bottom',
-            'margin-left',
-            'padding',
-            'padding-top',
-            'padding-right',
-            'padding-bottom',
-            'padding-left',
-            'height',
-            'width',
-            'min-height',
-            'min-width',
-            'top',
-            'right',
-            'bottom',
-            'left',
-        ],
-    }),
-    autoprefixer(),
-]; //pipe(postcss(processors))
+//===========START environment ===============
+function setNodeEnvDev(cd) {
+    process.env.NODE_ENV = 'development';
+    console.log('environment: ', process.env.NODE_ENV);
+    cd();
+}
+function setNodeEnvProd(cd) {
+    process.env.NODE_ENV = 'production';
+    console.log('environment: ', process.env.NODE_ENV);
+    cd();
+}
+gulp.task('set_env_dev',  parallel(setNodeEnvDev));
+gulp.task('set_env_prod',  parallel(setNodeEnvProd));
+//=============END environment ===============
+
+if (process.env.NODE_ENV = 'production') {
+    const processors = [
+        pxtoremorem({
+            selectorBlackList: [/^html$/],
+            replace: true,
+            rootValue: 16,
+            propList: [
+                'border-radius',
+                'box-shadow',
+                'font',
+                'font-size',
+                'line-height',
+                'letter-spacing',
+                'margin',
+                'margin-top',
+                'margin-right',
+                'margin-bottom',
+                'margin-left',
+                'padding',
+                'padding-top',
+                'padding-right',
+                'padding-bottom',
+                'padding-left',
+                'height',
+                'width',
+                'min-height',
+                'min-width',
+                'top',
+                'right',
+                'bottom',
+                'left',
+            ],
+        }),
+        autoprefixer(),
+    ]; //pipe(postcss(processors))
+} else {
+    const processors = [];
+}
 
 const root = {
     src: {
